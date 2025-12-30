@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tamil Nadu Civic Engagement Portal</title>
+  <style>
+    /* ---------- RESET ---------- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #fff;
+      color: #333;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* ---------- HEADER ---------- */
+    header {
+      position: sticky;
+      top: 0;
+      background: #0b3d91;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 15px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    header .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    header .logo img {
+      height: 50px;
+    }
+
+    header .logo span {
+      font-size: 22px;
+      font-weight: bold;
+      color: #ffffff;
+    }
+
+    /* ---------- NAVIGATION ---------- */
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 30px;
+      position: relative;
+    }
+
+    nav ul li {
+      position: relative;
+    }
+
+    nav ul li a {
+      font-weight: 500;
+      color: #ffffff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: background 0.3s ease;
+      cursor: pointer;
+    }
+
+    nav ul li a:hover {
+      background: #1452c2;
+    }
+
+    /* ---------- DROPDOWN MENU ---------- */
+    .dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #ffffff;
+      min-width: 200px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      display: none;
+      z-index: 999;
+    }
+
+    .dropdown a {
+      display: block;
+      padding: 10px 15px;
+      color: #0b3d91;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+
+    .dropdown a:hover {
+      background: #f4f4f4;
+    }
+
+    nav ul li:hover .dropdown {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---------- HERO SECTION ---------- */
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 80px 10%;
+      gap: 40px;
+      background: linear-gradient(to right, #f8fbff, #fff);
+    }
+
+    .hero-text h1 {
+      font-size: 48px;
+      color: #0b3d91;
+      margin-bottom: 20px;
+      line-height: 1.2;
+    }
+
+    .hero-text p {
+      font-size: 18px;
+      color: #555;
+      margin-bottom: 30px;
+    }
+
+    .cta-buttons a {
+      display: inline-block;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-right: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .cta-buttons .primary {
+      background: #0b3d91;
+      color: #fff;
+    }
+
+    .cta-buttons .primary:hover {
+      background: #1452c2;
+    }
+
+    .cta-buttons .secondary {
+      background: #fcbf49;
+      color: #0b3d91;
+    }
+
+    .cta-buttons .secondary:hover {
+      background: #ffda77;
+    }
+
+    .hero-image img {
+      width: 100%;
+    }
+
+    /* ---------- FEATURES ---------- */
+    .features {
+      padding: 80px 10%;
+      background: #f8fbff;
+      text-align: center;
+    }
+
+    .features h2 {
+      font-size: 32px;
+      color: #0b3d91;
+      margin-bottom: 50px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+    }
+
+    .feature-card {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    }
+
+    .feature-card img {
+      height: 60px;
+      margin-bottom: 20px;
+    }
+
+    .feature-card h3 {
+      font-size: 20px;
+      color: #0b3d91;
+      margin-bottom: 10px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: #555;
+    }
+
+    /* ---------- CALL TO ACTION ---------- */
+    .cta-section {
+      padding: 80px 10%;
+      background: linear-gradient(to right, #0b3d91, #1452c2);
+      color: white;
+      text-align: center;
+      border-radius: 20px;
+      margin: 60px 5% 0 5%;
+    }
+
+    .cta-section h2 {
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+
+    .cta-section p {
+      font-size: 18px;
+      margin-bottom: 30px;
+    }
+
+    .cta-section a {
+      display: inline-block;
+      background: #fcbf49;
+      color: #0b3d91;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    .cta-section a:hover {
+      background: #ffda77;
+    }
+
+    /* ---------- FOOTER ---------- */
+    footer {
+      background: #f2f4ff;
+      padding: 60px 10%;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 40px;
+      margin-top: 60px;
+    }
+
+    footer h4 {
+      font-size: 18px;
+      color: #0b3d91;
+      margin-bottom: 15px;
+    }
+
+    footer ul {
+      list-style: none;
+    }
+
+    footer ul li {
+      margin-bottom: 10px;
+    }
+
+    footer ul li a {
+      color: #555;
+      font-size: 14px;
+      transition: color 0.3s ease;
+    }
+
+    footer ul li a:hover {
+      color: #0b3d91;
+    }
+
+    .footer-bottom {
+      text-align: center;
+      padding: 20px;
+      background: #fff;
+      color: #777;
+      font-size: 14px;
+    }
+
+    /* ---------- MODAL POPUP ---------- */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content h3 {
+      color: #0b3d91;
+      margin-bottom: 15px;
+    }
+
+    .modal-content p {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 20px;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+
+    .modal-content button {
+      background: #0b3d91;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .modal-content button:hover {
+      background: #1452c2;
+    }
+
+    .modal-links {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .modal-links a {
+      display: block;
+      margin: 10px 0;
+      padding: 10px;
+      background: #fcbf49;
+      color: #0b3d91;
+      border-radius: 6px;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    .modal-links a:hover {
+      background: #ffda77;
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .hero-text h1 {
+        font-size: 36px;
+      }
+
+      nav ul {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .dropdown {
+        position: relative;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <img src="logo.png" alt="TN Logo">
+      <span>Tamil Nadu Civic Portal</span>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="#">Home</a></li>
+        
+        <!-- CITIZEN DROPDOWN -->
+        <li>
+          <a href="#">Citizen ▾</a>
+          <div class="dropdown">
+            <a href="citizen-report.html">📌 Report Issue</a>
+            <a href="track-issue.html">🔍 Track Issue</a>
+          </div>
+        </li>
+
+        <!-- ADMIN WITH PASSWORD -->
+        <li>
+          <a href="#" onclick="openAdminModal()">Admin ▾</a>
+        </li>
+
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="hero">
+    <div class="hero-text">
+      <h1>Smart Governance for a Better Tomorrow</h1>
+      <p>
+        Empowering citizens to report issues, track progress, and collaborate 
+        with authorities to build a cleaner, smarter, and safer Tamil Nadu.
+      </p>
+      <div class="cta-buttons">
+        <a href="citizen-report.html" class="primary">Report an Issue</a>
+        <a href="track-issue.html" class="secondary">Track Status</a>
+      </div>
+    </div>
+    <div class="hero-image">
+      <img src="smart.png.png" alt="Smart City Illustration">
+    </div>
+  </section>
+
+  <!-- FEATURES SECTION -->
+  <section class="features">
+    <h2>Key Features</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <img src="report.png.png" alt="Report Issues">
+        <h3>Report Issues</h3>
+        <p>Easily report civic problems like garbage, potholes, or water issues.</p>
+      </div>
+      <div class="feature-card">
+        <img src="track.png.png" alt="Track Progress">
+        <h3>Track Progress</h3>
+        <p>Stay updated with real-time tracking of your complaints.</p>
+      </div>
+      <div class="feature-card">
+        <img src="admin.png.png" alt="Admin Dashboard">
+        <h3>Admin Dashboard</h3>
+        <p>Authorities can manage and resolve complaints efficiently.</p>
+      </div>
+      <div class="feature-card">
+        <img src="data.png.png" alt="Data Analytics">
+        <h3>Data Analytics</h3>
+        <p>Gain insights and improve service delivery with powerful analytics.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CALL TO ACTION SECTION -->
+  <section class="cta-section">
+    <h2>Join Us in Building a Smarter Tamil Nadu</h2>
+    <p>Your voice matters. Together, we can improve our cities and communities.</p>
+    <a href="#">Get Started Now</a>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <h4>About</h4>
+      <ul>
+        <li><a href="#">Our Vision</a></li>
+        <li><a href="#">Team</a></li>
+        <li><a href="#">Partners</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Services</h4>
+      <ul>
+        <li><a href="#">Citizen Reporting</a></li>
+        <li><a href="#">Tracking</a></li>
+        <li><a href="#">Data Analytics</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Support</h4>
+      <ul>
+        <li><a href="#">Help Center</a></li>
+        <li><a href="#">FAQs</a></li>
+        <li><a href="#">Contact Us</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Follow Us</h4>
+      <ul>
+        <li><a href="#">🌐 Website</a></li>
+        <li><a href="#">🐦 Twitter</a></li>
+        <li><a href="#">📘 Facebook</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <div class="footer-bottom">
+    © 2025 Government of Tamil Nadu | All Rights Reserved
+  </div>
+
+  <!-- ADMIN PASSWORD MODAL -->
+  <div class="modal" id="adminModal">
+    <div class="modal-content">
+      <h3>🔒 Government Access Only</h3>
+      <p>Enter the password to access the Admin Section.</p>
+      <input type="password" id="adminPassword" placeholder="Enter password" />
+      <button onclick="validateAdmin()">Submit</button>
+      <div class="modal-links" id="adminLinks">
+        <h3>Access Granted ✅</h3>
+        <a href="admin-dashboard.html">Go to Admin Dashboard</a>
+        <a href="analytics.html">Go to View Analytics</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ADMIN_PASSWORD = "tamilnadu";
+
+    function openAdminModal() {
+      document.getElementById('adminModal').style.display = 'flex';
+      document.getElementById('adminLinks').style.display = 'none';
+      document.getElementById('adminPassword').value = '';
+    }
+
+    function validateAdmin() {
+      const enteredPassword = document.getElementById('adminPassword').value;
+      const links = document.getElementById('adminLinks');
+
+      if (enteredPassword === ADMIN_PASSWORD) {
+        links.style.display = 'block';
+      } else {
+        alert("Incorrect password! Please try again.");
+      }
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById('adminModal');
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    }
+  </script>
+
+</body>
+</html>

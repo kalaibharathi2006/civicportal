@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6">
+  <h1 class="text-3xl font-bold text-green-700 mb-6">📊 Civic Issue Analytics</h1>
+
+  <!-- Charts Container -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl">
+    <!-- Pending Chart -->
+    <div class="bg-white shadow-lg rounded-2xl p-6">
+      <h2 class="text-xl font-semibold text-gray-700 mb-4">Active Issues (Pending + In Progress)</h2>
+      <canvas id="pendingChart" height="200"></canvas>
+    </div>
+
+    <!-- Resolved Chart -->
+    <div class="bg-white shadow-lg rounded-2xl p-6">
+      <h2 class="text-xl font-semibold text-gray-700 mb-4">Resolved Issues</h2>
+      <canvas id="resolvedChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Back to Home -->
+  <a href="index.html" class="mt-6 text-blue-700 underline">⬅ Back to Home</a>
+
+  <script>
+    function loadAnalytics() {
+      // Separate counts for pending/in-progress and resolved
+      let pendingCounts = { garbage: 0, drainage: 0, streetlight: 0, road: 0, other: 0 };
+      let resolvedCounts = { garbage: 0, drainage: 0, streetlight: 0, road: 0, other: 0 };
+
+      // Go through localStorage and categorize
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith("REP")) {
+          const issue = JSON.parse(localStorage.getItem(key));
+
+          const category = issue.category || "other";
+          const status = issue.status || "Pending";
+
+          if (status === "Resolved") {
+            // Count in resolved chart
+            if (resolvedCounts[category] !== undefined) {
+              resolvedCounts[category]++;
+            } else {
+              resolvedCounts.other++;
+            }
+          } else {
+            // Count in pending chart (Pending + In Progress)
+            if (pendingCounts[category] !== undefined) {
+              pendingCounts[category]++;
+            } else {
+              pendingCounts.other++;
+            }
+          }
+        }
+      }
+
+      // Common labels and colors
+      const labels = ["Garbage", "Drainage", "Street Light", "Road", "Other"];
+      const colors = ["#e74c3c", "#3498db", "#f1c40f", "#2ecc71", "#9b59b6"];
+
+      // Create Pending Pie Chart
+      const pendingCtx = document.getElementById("pendingChart").getContext("2d");
+      new Chart(pendingCtx, {
+        type: "pie",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Pending/In Progress",
+            data: [
+              pendingCounts.garbage,
+              pendingCounts.drainage,
+              pendingCounts.streetlight,
+              pendingCounts.road,
+              pendingCounts.other
+            ],
+            backgroundColor: colors
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { position: "bottom" },
+            title: { display: true, text: "Active Issues Distribution" }
+          }
+        }
+      });
+
+      // Create Resolved Pie Chart
+      const resolvedCtx = document.getElementById("resolvedChart").getContext("2d");
+      new Chart(resolvedCtx, {
+        type: "pie",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Resolved",
+            data: [
+              resolvedCounts.garbage,
+              resolvedCounts.drainage,
+              resolvedCounts.streetlight,
+              resolvedCounts.road,
+              resolvedCounts.other
+            ],
+            backgroundColor: colors
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { position: "bottom" },
+            title: { display: true, text: "Resolved Issues Distribution" }
+          }
+        }
+      });
+    }
+
+    // Run analytics on load
+    loadAnalytics();
+  </script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Track Your Issue</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .hidden { display: none; }
+    .error { color: red; font-weight: bold; margin-top: 10px; }
+    .success { color: green; font-weight: bold; margin-top: 10px; }
+    .view-photo-btn {
+      background: #4CAF50;
+      color: white;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .view-photo-btn:hover {
+      background: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Civic Engagement Portal</h1>
+    <nav>
+      <ul class="menu">
+        <li><a href="index.html">🏠 Home</a></li>
+        <li><a href="citizen-report.html">📌 Report Issue</a></li>
+        <li><a href="track-issue.html" class="active">🔍 Track Issue</a></li>
+        <li><a href="contact.html">📞 Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="form-section">
+      <h2>Track Your Issue</h2>
+      <p class="info">Enter your unique Issue ID to check the current status of your report.</p>
+      
+      <!-- Search Form -->
+      <form id="trackForm" class="track-form">
+        <label for="issueId">Issue ID:</label>
+        <input type="text" id="issueId" placeholder="Paste Issue ID here" required>
+        <button type="submit">Track</button>
+      </form>
+
+      <!-- Error / Success message -->
+      <p id="message" class="hidden"></p>
+
+      <!-- Result Box -->
+      <div id="resultBox" class="result-box hidden">
+        <h3>Result</h3>
+        <p><strong>Status:</strong> <span id="status"></span></p>
+        <p><strong>Category:</strong> <span id="cat"></span></p>
+        <p><strong>Description:</strong> <span id="desc"></span></p>
+        <p><strong>Location:</strong> <span id="loc"></span></p>
+
+        <!-- View Photos Button (Visible Only If Resolved) -->
+        <div id="photoSection" class="hidden">
+          <button class="view-photo-btn" onclick="viewPhotos()">📸 View Photos</button>
+        </div>
+      </div>
+
+      <p class="back-link"><a href="index.html">⬅ Back to Home</a></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Civic Engagement Portal | All Rights Reserved</p>
+  </footer>
+
+  <script>
+    let currentIssueId = ""; // To store currently searched issue ID
+
+    // Form submit listener
+    document.getElementById("trackForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const issueId = document.getElementById("issueId").value.trim();
+      currentIssueId = issueId; // store it globally
+
+      const resultBox = document.getElementById("resultBox");
+      const msg = document.getElementById("message");
+      const photoSection = document.getElementById("photoSection");
+
+      // Fetch issue from localStorage
+      const issueData = localStorage.getItem(issueId);
+
+      if (issueData) {
+        const issue = JSON.parse(issueData);
+
+        // Success message
+        msg.textContent = "✅ Issue found successfully!";
+        msg.className = "success";
+        msg.classList.remove("hidden");
+
+        // Populate issue details
+        document.getElementById("status").innerText = issue.status;
+        document.getElementById("cat").innerText = issue.category;
+        document.getElementById("desc").innerText = issue.description;
+        document.getElementById("loc").innerText = issue.location;
+
+        resultBox.classList.remove("hidden");
+
+        // Show View Photos button only if status is "Resolved"
+        if (issue.status === "Resolved") {
+          photoSection.classList.remove("hidden");
+        } else {
+          photoSection.classList.add("hidden");
+        }
+
+      } else {
+        // If no issue found
+        msg.textContent = "❌ Invalid Issue ID. Please try again.";
+        msg.className = "error";
+        msg.classList.remove("hidden");
+
+        resultBox.classList.add("hidden");
+        photoSection.classList.add("hidden");
+      }
+    });
+
+    // Redirect to photo-view.html with issue ID
+    function viewPhotos() {
+      if (currentIssueId) {
+        window.location.href = `photo-view.html?id=${currentIssueId}`;
+      }
+    }
+  </script>
+</body>
+</html>

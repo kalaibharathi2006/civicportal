@@ -1,0 +1,266 @@
+/* General Reset */
+body, ul, li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f8f9;
+  color: #333;
+}
+
+/* Header */
+header {
+  background: #2c7a7b;
+  color: white;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+nav ul.menu {
+  display: flex;
+  gap: 20px;
+}
+
+nav ul li {
+  position: relative;
+}
+
+nav ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 8px 12px;
+  display: block;
+}
+
+nav ul li a:hover {
+  background: #225e60;
+  border-radius: 4px;
+}
+
+/* Dropdown Menu */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 35px;
+  left: 0;
+  background: white;
+  min-width: 180px;
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
+  border-radius: 5px;
+}
+
+.dropdown-content li a {
+  color: #333;
+  padding: 10px;
+}
+
+.dropdown-content li a:hover {
+  background: #e2e8f0;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  padding: 60px 20px;
+  background: linear-gradient(to right, #38b2ac, #2c7a7b);
+  color: white;
+  border-radius: 0 0 20px 20px;
+}
+
+.hero h2 {
+  font-size: 32px;
+  margin-bottom: 15px;
+}
+
+/* Footer */
+footer {
+  background: #2c7a7b;
+  color: white;
+  text-align: center;
+  padding: 15px;
+  margin-top: 30px;
+}
+/* Track Issue Page */
+.form-section {
+  max-width: 500px;
+  margin: 40px auto;
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.form-section h2 {
+  margin-bottom: 15px;
+  color: #2c7a7b;
+}
+
+.form-section .info {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.track-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.track-form label {
+  font-weight: bold;
+  text-align: left;
+}
+
+.track-form input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.track-form button {
+  padding: 10px;
+  background: #2c7a7b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.track-form button:hover {
+  background: #225e60;
+}
+
+.result-box {
+  text-align: left;
+  background: #f4f8f9;
+  padding: 15px;
+  border-left: 5px solid #2c7a7b;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.back-link a {
+  text-decoration: none;
+  color: #2c7a7b;
+  font-weight: bold;
+}
+
+.back-link a:hover {
+  text-decoration: underline;
+}
+/* Track Issue Page */
+.form-section {
+  max-width: 500px;
+  margin: 40px auto;
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.form-section h2 {
+  margin-bottom: 15px;
+  color: #2c7a7b;
+}
+
+.form-section .info {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.track-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.track-form label {
+  font-weight: bold;
+  text-align: left;
+}
+
+.track-form input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.track-form button {
+  padding: 10px;
+  background: #2c7a7b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.track-form button:hover {
+  background: #225e60;
+}
+
+.result-box {
+  text-align: left;
+  background: #f4f8f9;
+  padding: 15px;
+  border-left: 5px solid #2c7a7b;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.back-link a {
+  text-decoration: none;
+  color: #2c7a7b;
+  font-weight: bold;
+}
+
+.back-link a:hover {
+  text-decoration: underline;
+}
+/* Contact Page */
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.contact-form label {
+  font-weight: bold;
+}
+
+.contact-form input,
+.contact-form textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.contact-form button {
+  padding: 10px;
+  background: #2c7a7b;
+  color: white;
+}

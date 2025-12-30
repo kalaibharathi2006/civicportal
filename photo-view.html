@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>View Photos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white shadow-xl rounded-2xl p-6 w-full max-w-2xl">
+    <h1 class="text-2xl font-bold text-center text-purple-700 mb-4">📸 Issue Photos</h1>
+    <div id="issueDetails" class="mb-4 text-center"></div>
+
+    <!-- Before Photo -->
+    <div>
+      <h2 class="text-lg font-semibold text-gray-700 mb-2">Before Photo (Citizen Upload)</h2>
+      <img id="beforePhoto" class="w-full rounded-lg border" alt="Before Photo" />
+    </div>
+
+    <!-- After Photo (Admin Upload) -->
+    <div class="mt-6">
+      <h2 class="text-lg font-semibold text-gray-700 mb-2">After Photo (Admin Upload)</h2>
+      <div id="afterPhotoContainer">
+        <p class="text-gray-500">No after photo uploaded yet.</p>
+      </div>
+
+      <div id="uploadSection" class="mt-4 hidden">
+        <input type="file" id="afterPhotoInput" accept="image/*" class="mb-3 block" />
+        <button onclick="uploadAfterPhoto()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+          Upload After Photo
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-6 text-center">
+      <a href="admin-dashboard.html" class="text-blue-700 underline">⬅ Back to Dashboard</a>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const issueId = params.get("id");
+
+    let issueData = JSON.parse(localStorage.getItem(issueId));
+
+    if (!issueData) {
+      document.getElementById("issueDetails").innerHTML = 
+        "<p class='text-red-600 font-bold'>❌ Issue not found.</p>";
+    } else {
+      // Show issue details
+      document.getElementById("issueDetails").innerHTML = `
+        <p><strong>ID:</strong> ${issueData.id}</p>
+        <p><strong>Status:</strong> ${issueData.status}</p>
+      `;
+
+      // Display before photo
+      if (issueData.beforePhoto) {
+        document.getElementById("beforePhoto").src = issueData.beforePhoto;
+      } else {
+        document.getElementById("beforePhoto").alt = "No Before Photo Available";
+      }
+
+      // Display after photo if exists
+      if (issueData.afterPhoto) {
+        document.getElementById("afterPhotoContainer").innerHTML =
+          `<img src="${issueData.afterPhoto}" class="w-full rounded-lg border" alt="After Photo" />`;
+      } else {
+        // If issue is resolved, allow admin to upload
+        if (issueData.status === "Resolved") {
+          document.getElementById("uploadSection").classList.remove("hidden");
+        }
+      }
+    }
+
+    // Upload After Photo
+    function uploadAfterPhoto() {
+      const fileInput = document.getElementById("afterPhotoInput").files[0];
+      if (!fileInput) {
+        alert("Please select a photo before uploading.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const base64AfterPhoto = event.target.result;
+        issueData.afterPhoto = base64AfterPhoto;
+
+        // Save back to localStorage
+        localStorage.setItem(issueId, JSON.stringify(issueData));
+
+        // Show updated photo
+        document.getElementById("afterPhotoContainer").innerHTML =
+          `<img src="${base64AfterPhoto}" class="w-full rounded-lg border" alt="After Photo" />`;
+        document.getElementById("uploadSection").classList.add("hidden");
+
+        alert("After photo uploaded successfully!");
+      };
+
+      reader.readAsDataURL(fileInput);
+    }
+  </script>
+</body>
+</html>

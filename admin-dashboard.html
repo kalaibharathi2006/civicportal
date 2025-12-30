@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f4f6f9; margin:0; padding:0; }
+    header { background:#2c3e50; color:white; padding:15px 20px; text-align:center; }
+    h1 { margin:0; font-size:24px; }
+    main { padding:30px; max-width:1200px; margin:auto; }
+    h2 { margin-top:40px; margin-bottom:15px; color:#2c3e50; border-bottom:2px solid #2c3e50; display:inline-block; padding-bottom:5px; }
+    table { width:100%; border-collapse:collapse; background:#fff; margin-bottom:30px; box-shadow:0px 4px 8px rgba(0,0,0,0.1); }
+    th, td { border:1px solid #ddd; padding:12px; text-align:center; }
+    th { background:#2c3e50; color:white; }
+    tr:nth-child(even) { background:#f9f9f9; }
+    .status-pending { color:#e67e22; font-weight:bold; }
+    .status-progress { color:#2980b9; font-weight:bold; }
+    .status-resolved { color:#27ae60; font-weight:bold; }
+    .action-btn { padding:6px 12px; margin:3px 0; border:none; border-radius:5px; cursor:pointer; font-size:14px; display:block; width:100%; }
+    .btn-progress { background:#2980b9; color:white; }
+    .btn-resolved { background:#27ae60; color:white; }
+    .btn-photo { background:#8e44ad; color:white; }
+    .btn-update { background:#f39c12; color:white; }
+    .back-link { display:block; text-align:center; margin-top:25px; text-decoration:none; color:#2c3e50; font-weight:bold; }
+    footer { text-align:center; background:#2c3e50; color:white; padding:10px; margin-top:40px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🛠 Admin Dashboard</h1>
+  </header>
+
+  <main>
+    <h2>🚧 Road Issues</h2>
+    <table id="roadTable">
+      <tr>
+        <th>ID(s)</th><th>Description</th><th>Address</th><th>Locations</th>
+        <th>Last Reported</th><th>Reports</th><th>Status</th><th>Action</th><th>Photos</th>
+      </tr>
+    </table>
+
+    <h2>💧 Drainage Issues</h2>
+    <table id="drainageTable">
+      <tr>
+        <th>ID(s)</th><th>Description</th><th>Address</th><th>Locations</th>
+        <th>Last Reported</th><th>Reports</th><th>Status</th><th>Action</th><th>Photos</th>
+      </tr>
+    </table>
+
+    <h2>🗑 Garbage Issues</h2>
+    <table id="garbageTable">
+      <tr>
+        <th>ID(s)</th><th>Description</th><th>Address</th><th>Locations</th>
+        <th>Last Reported</th><th>Reports</th><th>Status</th><th>Action</th><th>Photos</th>
+      </tr>
+    </table>
+
+    <h2>💡 Street Light Issues</h2>
+    <table id="streetlightTable">
+      <tr>
+        <th>ID(s)</th><th>Description</th><th>Address</th><th>Locations</th>
+        <th>Last Reported</th><th>Reports</th><th>Status</th><th>Action</th><th>Photos</th>
+      </tr>
+    </table>
+
+    <a href="index.html" class="back-link">⬅ Back to Home</a>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Civic Engagement Portal | Admin</p>
+  </footer>
+
+<script>
+  const mergedIssues = {};
+
+  // Normalize location to 4 decimal points
+  function normalizeLocation(loc){
+    if(!loc) return "Unknown";
+    const parts = loc.split(",");
+    if(parts.length !== 2) return loc;
+
+    const lat = parseFloat(parts[0]).toFixed(4);
+    const lon = parseFloat(parts[1]).toFixed(4);
+    return `${lat},${lon}`;
+  }
+
+  // Load issues from localStorage
+  function loadIssues(){
+    for(let i = 0; i < localStorage.length; i++){
+      const key = localStorage.key(i);
+      if(key.startsWith("REP")){
+        const issue = JSON.parse(localStorage.getItem(key));
+        issue.location = normalizeLocation(issue.location);
+        mergeIssue(issue);
+      }
+    }
+
+    Object.values(mergedIssues).forEach(issue => addIssueRow(issue));
+  }
+
+  // Merge complaints by category + address
+  function mergeIssue(issue){
+    const uniqueKey = issue.category + "_" + (issue.address || "Unknown");
+
+    if(mergedIssues[uniqueKey]){
+      mergedIssues[uniqueKey].reports += 1;
+      mergedIssues[uniqueKey].ids.push(issue.id);
+
+      if(!mergedIssues[uniqueKey].locations.includes(issue.location)){
+        mergedIssues[uniqueKey].locations.push(issue.location);
+      }
+
+      mergedIssues[uniqueKey].date = issue.date; // update last reported
+    } else {
+      issue.reports = 1;
+      issue.ids = [issue.id];
+      issue.locations = [issue.location];
+      mergedIssues[uniqueKey] = issue;
+    }
+  }
+
+  // Add row to respective table
+  function addIssueRow(issue){
+    let tableId = "";
+    switch(issue.category){
+      case "road": tableId = "roadTable"; break;
+      case "drainage": tableId = "drainageTable"; break;
+      case "garbage": tableId = "garbageTable"; break;
+      case "streetlight": tableId = "streetlightTable"; break;
+      default: return;
+    }
+
+    let statusClass = "status-pending";
+    if(issue.status === "In Progress") statusClass = "status-progress";
+    if(issue.status === "Resolved") statusClass = "status-resolved";
+
+    const table = document.getElementById(tableId);
+    const row = table.insertRow();
+    row.innerHTML = `
+      <td>${issue.ids.join(", ")}</td>
+      <td>${issue.description}</td>
+      <td>${issue.address || "N/A"}</td>
+      <td>${issue.locations.join(" | ")}</td>
+      <td>${issue.date || "N/A"}</td>
+      <td>${issue.reports}</td>
+      <td class="${statusClass}">${issue.status || "Pending"}</td>
+      <td>
+        <button class="action-btn btn-progress" onclick="updateStatus('${issue.ids[0]}','In Progress',this)">In Progress</button>
+        <button class="action-btn btn-resolved" onclick="updateStatus('${issue.ids[0]}','Resolved',this)">Resolved</button>
+      </td>
+      <td>
+        <button class="action-btn btn-photo" onclick="viewPhotos('${issue.ids[0]}')">View</button>
+        <button class="action-btn btn-update" onclick="uploadAfterPhoto('${issue.ids[0]}')">Upload</button>
+      </td>
+    `;
+  }
+
+  // Update status in localStorage and table
+  function updateStatus(id, newStatus, btn){
+    for(const issue of Object.values(mergedIssues)){
+      if(issue.ids.includes(id)){
+        issue.ids.forEach(storedId => {
+          const storedIssue = JSON.parse(localStorage.getItem(storedId));
+          if(storedIssue){
+            storedIssue.status = newStatus;
+            localStorage.setItem(storedId, JSON.stringify(storedIssue));
+          }
+        });
+
+        const statusCell = btn.closest("tr").children[6];
+        statusCell.textContent = newStatus;
+        statusCell.className = newStatus === "Resolved" 
+          ? "status-resolved" 
+          : (newStatus === "In Progress" ? "status-progress" : "status-pending");
+        break;
+      }
+    }
+  }
+
+  // Open file picker for afterPhoto upload
+  function uploadAfterPhoto(issueId) {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+
+    fileInput.onchange = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64AfterPhoto = e.target.result;
+
+        // Update the specific complaint
+        const storedIssue = JSON.parse(localStorage.getItem(issueId));
+        if (storedIssue) {
+          storedIssue.afterPhoto = base64AfterPhoto;
+          storedIssue.status = "Resolved"; // auto mark resolved
+          localStorage.setItem(issueId, JSON.stringify(storedIssue));
+          alert("After photo uploaded successfully!");
+        }
+      };
+      reader.readAsDataURL(file);
+    };
+
+    fileInput.click(); // Open file picker
+  }
+
+  // Redirect to photo-view page
+  function viewPhotos(issueId){
+    window.location.href = `photo-view.html?id=${issueId}`;
+  }
+
+  // Initialize
+  loadIssues();
+</script>
+
+</body>
+</html>
