@@ -2,97 +2,225 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>View Photos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Issue Photos - Civic Engagement Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="geo-utils.js"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-  <div class="bg-white shadow-xl rounded-2xl p-6 w-full max-w-2xl">
-    <h1 class="text-2xl font-bold text-center text-purple-700 mb-4">📸 Issue Photos</h1>
-    <div id="issueDetails" class="mb-4 text-center"></div>
-
-    <!-- Before Photo -->
-    <div>
-      <h2 class="text-lg font-semibold text-gray-700 mb-2">Before Photo (Citizen Upload)</h2>
-      <img id="beforePhoto" class="w-full rounded-lg border" alt="Before Photo" />
+<body class="bg-gray-100 min-h-screen p-4 flex items-center justify-center">
+  <div class="bg-white shadow-xl rounded-2xl p-6 w-full max-w-3xl border border-gray-100">
+    <div class="flex items-center justify-between mb-4 border-b pb-3">
+      <h1 class="text-2xl font-bold text-gray-800" id="pageTitle">📸 Issue Evidence & Resolution</h1>
+      <a href="javascript:history.back()" class="text-sm font-semibold text-blue-600 hover:underline">⬅ Back</a>
     </div>
 
-    <!-- After Photo (Admin Upload) -->
-    <div class="mt-6">
-      <h2 class="text-lg font-semibold text-gray-700 mb-2">After Photo (Admin Upload)</h2>
-      <div id="afterPhotoContainer">
-        <p class="text-gray-500">No after photo uploaded yet.</p>
+    <!-- Details Card -->
+    <div id="issueDetails" class="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200 text-sm"></div>
+
+    <!-- Before Photos Section -->
+    <div class="mb-6">
+      <div class="flex items-center justify-between mb-2">
+        <h2 id="evidenceSectionTitle" class="text-base font-bold text-gray-800 flex items-center gap-2">
+          <span>📷</span> Citizen Uploaded Evidence
+        </h2>
+        <span id="photoCountBadge" class="text-xs bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded-full"></span>
+      </div>
+      <div id="beforePhotosContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Photos rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- After Photo Section (Government Resolution) -->
+    <div class="border-t pt-4">
+      <h2 class="text-base font-bold text-green-800 flex items-center gap-2 mb-2">
+        <span>✅</span> Official Resolution Photo (Government Action)
+      </h2>
+      <div id="afterPhotoContainer" class="p-4 bg-green-50 rounded-xl border border-green-200 text-center">
+        <!-- Rendered dynamically -->
       </div>
 
-      <div id="uploadSection" class="mt-4 hidden">
-        <input type="file" id="afterPhotoInput" accept="image/*" class="mb-3 block" />
-        <button onclick="uploadAfterPhoto()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-          Upload After Photo
+      <!-- Government Admin Upload Section (ONLY VISIBLE TO GOVERNMENT ADMIN) -->
+      <div id="uploadSection" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl hidden">
+        <p class="text-xs font-bold text-blue-900 mb-1 uppercase tracking-wide">🏛️ Government Officer Resolution Upload:</p>
+        <p class="text-xs text-blue-700 mb-3">Upload completion photo after field resolution. This will automatically mark all linked citizen reports for this location as Resolved.</p>
+        <input type="file" id="afterPhotoInput" accept="image/*" class="mb-3 block text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-blue-600 file:text-white file:text-xs file:font-semibold hover:file:bg-blue-700 cursor-pointer" />
+        <button onclick="uploadAfterPhotoAction()" class="bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-green-700 shadow transition">
+          Confirm Resolution & Upload Photo
         </button>
       </div>
     </div>
 
-    <div class="mt-6 text-center">
-      <a href="admin-dashboard.html" class="text-blue-700 underline">⬅ Back to Dashboard</a>
+    <div class="mt-6 text-center pt-4 border-t flex justify-center items-center gap-4 text-sm">
+      <span id="adminDashboardLink" class="hidden">
+        <a href="admin-dashboard.html" class="text-blue-600 font-medium hover:underline">🛠 Admin Dashboard</a>
+        <span class="text-gray-300 ml-4">|</span>
+      </span>
+      <a href="track-issue.html" class="text-blue-600 font-medium hover:underline">🔍 Track Another Issue</a>
+      <span class="text-gray-300">|</span>
+      <a href="index.html" class="text-blue-600 font-medium hover:underline">🏠 Home</a>
     </div>
   </div>
 
   <script>
     const params = new URLSearchParams(window.location.search);
     const issueId = params.get("id");
+    
+    // Only display government upload controls & cluster details if accessed from admin dashboard with admin=true
+    const isAdmin = params.get("admin") === "true";
 
-    let issueData = JSON.parse(localStorage.getItem(issueId));
+    const issueData = issueId ? JSON.parse(localStorage.getItem(issueId)) : null;
+    const cluster = issueId ? getClusterForReportId(issueId) : null;
 
-    if (!issueData) {
+    if (!issueData && !cluster) {
       document.getElementById("issueDetails").innerHTML = 
-        "<p class='text-red-600 font-bold'>❌ Issue not found.</p>";
+        "<p class='text-red-600 font-bold'>❌ Issue record not found. Please verify the ID.</p>";
     } else {
-      // Show issue details
-      document.getElementById("issueDetails").innerHTML = `
-        <p><strong>ID:</strong> ${issueData.id}</p>
-        <p><strong>Status:</strong> ${issueData.status}</p>
-      `;
+      const activeData = issueData || (cluster && cluster.issues[0]);
+      const status = (cluster ? cluster.status : activeData.status) || "Pending";
 
-      // Display before photo
-      if (issueData.beforePhoto) {
-        document.getElementById("beforePhoto").src = issueData.beforePhoto;
+      if (isAdmin) {
+        // --- GOVERNMENT ADMIN VIEW ---
+        document.getElementById("pageTitle").innerText = "🛠 Government Review: Evidence & Resolution";
+        document.getElementById("evidenceSectionTitle").innerHTML = "<span>📷</span> All Citizen Uploaded Evidence (Location Group)";
+
+        // Show full cluster stats to government
+        document.getElementById("issueDetails").innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div>
+              <p><strong>Primary ID:</strong> <span class="font-mono text-blue-700">${activeData.id}</span></p>
+              <p><strong>Category:</strong> <span class="capitalize">${activeData.category || 'N/A'}</span></p>
+              <p><strong>Status:</strong> <span class="font-bold ${status === 'Resolved' ? 'text-green-600' : 'text-amber-600'}">${status}</span></p>
+            </div>
+            <div>
+              <p><strong>Location:</strong> ${activeData.address || activeData.location}</p>
+              <p><strong>Consolidated Reports:</strong> <span class="font-bold text-blue-700">${cluster ? cluster.reportsCount : 1} citizen report(s)</span></p>
+              <p><strong>Cluster ID:</strong> <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">${cluster ? cluster.clusterId : 'Single'}</code></p>
+            </div>
+          </div>
+        `;
+
+        // Render all photos from all citizens in the cluster
+        const photosContainer = document.getElementById("beforePhotosContainer");
+        const photosList = cluster ? cluster.issues : [activeData];
+        let validPhotos = 0;
+
+        photosContainer.innerHTML = "";
+        photosList.forEach((item, idx) => {
+          if (item.beforePhoto) {
+            validPhotos++;
+            const card = document.createElement("div");
+            card.className = "border rounded-lg overflow-hidden bg-white shadow-sm";
+            card.innerHTML = `
+              <img src="${item.beforePhoto}" class="w-full h-48 object-cover" alt="Citizen Photo ${idx+1}" />
+              <div class="p-2.5 text-xs text-gray-600 bg-gray-50 border-t">
+                <span class="font-semibold text-gray-800">Citizen Report ID: ${item.id}</span>
+                <p class="truncate mt-0.5 text-gray-500">${item.description || 'No comment'}</p>
+              </div>
+            `;
+            photosContainer.appendChild(card);
+          }
+        });
+
+        document.getElementById("photoCountBadge").innerText = `${validPhotos} Total Photo(s)`;
+
+        // Show upload controls to Government Officer
+        document.getElementById("uploadSection").classList.remove("hidden");
+        document.getElementById("adminDashboardLink").classList.remove("hidden");
+
       } else {
-        document.getElementById("beforePhoto").alt = "No Before Photo Available";
+        // --- CITIZEN VIEW ---
+        // Citizen sees ONLY their own uploaded photo and their own report details
+        document.getElementById("pageTitle").innerText = "📸 Your Issue Evidence & Resolution";
+        document.getElementById("evidenceSectionTitle").innerHTML = "<span>📷</span> Your Uploaded Photo";
+
+        document.getElementById("issueDetails").innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div>
+              <p><strong>Tracking ID:</strong> <span class="font-mono text-blue-700">${activeData.id}</span></p>
+              <p><strong>Category:</strong> <span class="capitalize">${activeData.category || 'N/A'}</span></p>
+            </div>
+            <div>
+              <p><strong>Status:</strong> <span class="font-bold ${status === 'Resolved' ? 'text-green-600' : 'text-amber-600'}">${status}</span></p>
+              <p><strong>Location:</strong> ${activeData.address || activeData.location}</p>
+            </div>
+          </div>
+        `;
+
+        // Citizen sees ONLY their own photo
+        const photosContainer = document.getElementById("beforePhotosContainer");
+        photosContainer.innerHTML = "";
+        
+        if (activeData.beforePhoto) {
+          const card = document.createElement("div");
+          card.className = "border rounded-lg overflow-hidden bg-white shadow-sm max-w-md";
+          card.innerHTML = `
+            <img src="${activeData.beforePhoto}" class="w-full h-52 object-cover" alt="Your Uploaded Photo" />
+            <div class="p-2.5 text-xs text-gray-600 bg-gray-50 border-t">
+              <span class="font-semibold text-gray-800">Your Description:</span>
+              <p class="mt-0.5 text-gray-700">${activeData.description || 'No description provided'}</p>
+            </div>
+          `;
+          photosContainer.appendChild(card);
+          document.getElementById("photoCountBadge").innerText = `1 Photo`;
+        } else {
+          photosContainer.innerHTML = `<p class="text-gray-400 italic text-sm">No photo uploaded for this report.</p>`;
+          document.getElementById("photoCountBadge").innerText = `0 Photo`;
+        }
+
+        // Upload section stays strictly hidden for citizen
+        document.getElementById("uploadSection").classList.add("hidden");
+        document.getElementById("adminDashboardLink").classList.add("hidden");
       }
 
-      // Display after photo if exists
-      if (issueData.afterPhoto) {
-        document.getElementById("afterPhotoContainer").innerHTML =
-          `<img src="${issueData.afterPhoto}" class="w-full rounded-lg border" alt="After Photo" />`;
+      // Render Government Resolution (After Photo) - both government and citizen can see this once completed
+      const afterPhotoSrc = (cluster && cluster.afterPhoto) || activeData.afterPhoto;
+      renderAfterPhoto(afterPhotoSrc);
+    }
+
+    function renderAfterPhoto(src) {
+      const container = document.getElementById("afterPhotoContainer");
+      if (src) {
+        container.innerHTML = `
+          <img src="${src}" class="w-full max-h-96 object-contain rounded-lg border mx-auto shadow-sm" alt="Resolution After Photo" />
+          <p class="text-xs font-semibold text-green-800 mt-2">✅ Work Verified and Completed by Municipal Team</p>
+        `;
       } else {
-        // If issue is resolved, allow admin to upload
-        if (issueData.status === "Resolved") {
-          document.getElementById("uploadSection").classList.remove("hidden");
-        }
+        container.innerHTML = `
+          <div class="py-6 text-gray-400">
+            <span class="text-3xl block mb-1">⏳</span>
+            <p class="text-sm font-medium text-gray-500">Resolution in progress.</p>
+            <p class="text-xs text-gray-400 mt-1">Official resolution photo will be posted by the municipal team once field work is completed.</p>
+          </div>
+        `;
       }
     }
 
-    // Upload After Photo
-    function uploadAfterPhoto() {
+    // Upload After Photo (Admin action only)
+    function uploadAfterPhotoAction() {
+      if (!isAdmin) {
+        alert("Unauthorized. Only municipal officers can upload resolution photos.");
+        return;
+      }
+
       const fileInput = document.getElementById("afterPhotoInput").files[0];
       if (!fileInput) {
-        alert("Please select a photo before uploading.");
+        alert("Please choose a photo file to upload.");
         return;
       }
 
       const reader = new FileReader();
       reader.onload = function(event) {
         const base64AfterPhoto = event.target.result;
-        issueData.afterPhoto = base64AfterPhoto;
 
-        // Save back to localStorage
-        localStorage.setItem(issueId, JSON.stringify(issueData));
+        // Synchronize after photo across cluster
+        if (cluster) {
+          updateClusterAfterPhoto(cluster.clusterId, base64AfterPhoto);
+        } else if (issueId) {
+          updateClusterAfterPhoto(issueId, base64AfterPhoto);
+        }
 
-        // Show updated photo
-        document.getElementById("afterPhotoContainer").innerHTML =
-          `<img src="${base64AfterPhoto}" class="w-full rounded-lg border" alt="After Photo" />`;
-        document.getElementById("uploadSection").classList.add("hidden");
-
-        alert("After photo uploaded successfully!");
+        renderAfterPhoto(base64AfterPhoto);
+        alert("Official resolution photo uploaded and synchronized to all linked reports!");
       };
 
       reader.readAsDataURL(fileInput);

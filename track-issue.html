@@ -2,23 +2,82 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Track Your Issue</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Your Issue - Civic Engagement Portal</title>
   <link rel="stylesheet" href="style.css">
+  <script src="geo-utils.js"></script>
   <style>
-    .hidden { display: none; }
-    .error { color: red; font-weight: bold; margin-top: 10px; }
-    .success { color: green; font-weight: bold; margin-top: 10px; }
-    .view-photo-btn {
-      background: #4CAF50;
+    .hidden { display: none !important; }
+    .error { color: #dc2626; font-weight: bold; margin-top: 12px; background: #fee2e2; padding: 10px; border-radius: 6px; }
+    .success { color: #059669; font-weight: bold; margin-top: 12px; background: #ecfdf5; padding: 10px; border-radius: 6px; }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 13px;
+    }
+    .status-badge.Pending { background: #fef3c7; color: #b45309; border: 1px solid #fbbf24; }
+    .status-badge.In-Progress { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+    .status-badge.Resolved { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+
+    .cluster-banner {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-size: 13px;
+      color: #1e3a8a;
+      line-height: 1.5;
+    }
+    .cluster-badge {
+      background: #3b82f6;
       color: white;
-      padding: 8px 14px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-left: 5px;
+    }
+    
+    .view-photo-btn {
+      background: #10b981;
+      color: white;
+      padding: 10px 18px;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
-      margin-top: 10px;
+      font-weight: bold;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 15px;
+      text-decoration: none;
+      transition: background 0.2s;
     }
     .view-photo-btn:hover {
-      background: #45a049;
+      background: #059669;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed #e2e8f0;
+      padding: 8px 0;
+      font-size: 14px;
+    }
+    .detail-label {
+      color: #64748b;
+      font-weight: 500;
+    }
+    .detail-val {
+      color: #1e293b;
+      font-weight: 600;
+      text-align: right;
+      max-width: 65%;
+      word-break: break-word;
     }
   </style>
 </head>
@@ -37,30 +96,58 @@
 
   <main>
     <section class="form-section">
-      <h2>Track Your Issue</h2>
-      <p class="info">Enter your unique Issue ID to check the current status of your report.</p>
+      <h2>🔍 Track Civic Issue</h2>
+      <p class="info">Enter your unique Tracking ID to view real-time progress and neighborhood resolution status.</p>
       
       <!-- Search Form -->
       <form id="trackForm" class="track-form">
-        <label for="issueId">Issue ID:</label>
-        <input type="text" id="issueId" placeholder="Paste Issue ID here" required>
-        <button type="submit">Track</button>
+        <label for="issueId">Tracking ID:</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="issueId" placeholder="e.g. REP123456" style="flex:1;" required>
+          <button type="submit" style="width:auto; padding:0 20px;">Track</button>
+        </div>
       </form>
 
       <!-- Error / Success message -->
-      <p id="message" class="hidden"></p>
+      <div id="message" class="hidden"></div>
 
       <!-- Result Box -->
       <div id="resultBox" class="result-box hidden">
-        <h3>Result</h3>
-        <p><strong>Status:</strong> <span id="status"></span></p>
-        <p><strong>Category:</strong> <span id="cat"></span></p>
-        <p><strong>Description:</strong> <span id="desc"></span></p>
-        <p><strong>Location:</strong> <span id="loc"></span></p>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:2px solid #e2e8f0; padding-bottom:8px;">
+          <h3 style="margin:0; font-size:18px; color:#1e293b;">Report Details</h3>
+          <span id="statusBadge" class="status-badge"></span>
+        </div>
 
-        <!-- View Photos Button (Visible Only If Resolved) -->
-        <div id="photoSection" class="hidden">
-          <button class="view-photo-btn" onclick="viewPhotos()">📸 View Photos</button>
+        <div class="detail-row">
+          <span class="detail-label">Your Tracking ID:</span>
+          <span id="dispId" class="detail-val" style="font-family:monospace; color:#2563eb;"></span>
+        </div>
+
+        <div class="detail-row">
+          <span class="detail-label">Category:</span>
+          <span id="cat" class="detail-val" style="text-transform:capitalize;"></span>
+        </div>
+
+        <div class="detail-row">
+          <span class="detail-label">Reported On:</span>
+          <span id="dateReported" class="detail-val"></span>
+        </div>
+
+        <div class="detail-row">
+          <span class="detail-label">Description:</span>
+          <span id="desc" class="detail-val"></span>
+        </div>
+
+        <div class="detail-row">
+          <span class="detail-label">Location:</span>
+          <span id="loc" class="detail-val"></span>
+        </div>
+
+
+
+        <!-- View Photos Button -->
+        <div id="photoSection" class="hidden" style="text-align:center;">
+          <button class="view-photo-btn" onclick="viewPhotos()">📸 View Before & After Photos</button>
         </div>
       </div>
 
@@ -69,61 +156,75 @@
   </main>
 
   <footer>
-    <p>&copy; 2025 Civic Engagement Portal | All Rights Reserved</p>
+    <p>&copy; 2025 Civic Engagement Portal | Government of Tamil Nadu</p>
   </footer>
 
   <script>
-    let currentIssueId = ""; // To store currently searched issue ID
+    let currentIssueId = "";
 
-    // Form submit listener
-    document.getElementById("trackForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-
-      const issueId = document.getElementById("issueId").value.trim();
-      currentIssueId = issueId; // store it globally
-
+    function executeTrack(issueId) {
+      currentIssueId = issueId.trim();
       const resultBox = document.getElementById("resultBox");
       const msg = document.getElementById("message");
       const photoSection = document.getElementById("photoSection");
 
-      // Fetch issue from localStorage
-      const issueData = localStorage.getItem(issueId);
+      if (!currentIssueId) return;
 
-      if (issueData) {
-        const issue = JSON.parse(issueData);
-
-        // Success message
-        msg.textContent = "✅ Issue found successfully!";
-        msg.className = "success";
-        msg.classList.remove("hidden");
-
-        // Populate issue details
-        document.getElementById("status").innerText = issue.status;
-        document.getElementById("cat").innerText = issue.category;
-        document.getElementById("desc").innerText = issue.description;
-        document.getElementById("loc").innerText = issue.location;
-
-        resultBox.classList.remove("hidden");
-
-        // Show View Photos button only if status is "Resolved"
-        if (issue.status === "Resolved") {
-          photoSection.classList.remove("hidden");
-        } else {
-          photoSection.classList.add("hidden");
-        }
-
-      } else {
-        // If no issue found
-        msg.textContent = "❌ Invalid Issue ID. Please try again.";
+      const rawData = localStorage.getItem(currentIssueId);
+      if (!rawData) {
+        msg.textContent = "❌ Invalid Tracking ID. No record found for " + currentIssueId + ". Please verify and try again.";
         msg.className = "error";
         msg.classList.remove("hidden");
-
         resultBox.classList.add("hidden");
+        return;
+      }
+
+      const issue = JSON.parse(rawData);
+      const cluster = getClusterForReportId(currentIssueId);
+
+      msg.textContent = "✅ Report record verified!";
+      msg.className = "success";
+      msg.classList.remove("hidden");
+
+      document.getElementById("dispId").innerText = issue.id;
+      document.getElementById("cat").innerText = (issue.category || "General Issue");
+      document.getElementById("desc").innerText = issue.description || "No description provided";
+      document.getElementById("dateReported").innerText = issue.date || "N/A";
+      document.getElementById("loc").innerText = issue.address ? `${issue.address} (${issue.location})` : issue.location;
+
+      // Status badge
+      const statusBadge = document.getElementById("statusBadge");
+      const cleanStatus = issue.status || "Pending";
+      statusBadge.innerText = cleanStatus;
+      statusBadge.className = "status-badge " + cleanStatus.replace(/\s+/g, '-');
+
+      resultBox.classList.remove("hidden");
+
+      // Show View Photos button if photo exists or resolved
+      if (issue.beforePhoto || issue.afterPhoto || (cluster && (cluster.photos.length > 0 || cluster.afterPhoto))) {
+        photoSection.classList.remove("hidden");
+      } else {
         photoSection.classList.add("hidden");
       }
+    }
+
+    // Form submit listener
+    document.getElementById("trackForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const id = document.getElementById("issueId").value;
+      executeTrack(id);
     });
 
-    // Redirect to photo-view.html with issue ID
+    // Auto-search if ID is passed in URL query param: ?id=REP123
+    window.onload = function() {
+      const params = new URLSearchParams(window.location.search);
+      const urlId = params.get("id");
+      if (urlId) {
+        document.getElementById("issueId").value = urlId;
+        executeTrack(urlId);
+      }
+    };
+
     function viewPhotos() {
       if (currentIssueId) {
         window.location.href = `photo-view.html?id=${currentIssueId}`;

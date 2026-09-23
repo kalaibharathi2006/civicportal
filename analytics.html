@@ -1,105 +1,135 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Analytics Dashboard</title>
+  <title>Analytics Dashboard - Civic Issues</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="geo-utils.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center p-6">
-  <h1 class="text-3xl font-bold text-green-700 mb-6">📊 Civic Issue Analytics</h1>
+  <div class="w-full max-w-5xl flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">📊 Civic Issue Analytics & Insights</h1>
+    <a href="index.html" class="text-blue-600 font-semibold hover:underline">⬅ Back to Home</a>
+  </div>
+
+  <!-- Key Metrics Row -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-5xl mb-6">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <p class="text-xs uppercase font-semibold text-gray-500">Citizen Reports</p>
+      <p id="statTotalReports" class="text-2xl font-bold text-blue-600">0</p>
+      <span class="text-xs text-gray-400">Total filings received</span>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <p class="text-xs uppercase font-semibold text-gray-500">Unique Civic Spots</p>
+      <p id="statClusters" class="text-2xl font-bold text-purple-600">0</p>
+      <span class="text-xs text-gray-400">Geographic clusters</span>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <p class="text-xs uppercase font-semibold text-gray-500">Active Issues</p>
+      <p id="statActive" class="text-2xl font-bold text-amber-600">0</p>
+      <span class="text-xs text-gray-400">Pending & In Progress</span>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <p class="text-xs uppercase font-semibold text-gray-500">Resolved</p>
+      <p id="statResolved" class="text-2xl font-bold text-green-600">0</p>
+      <span class="text-xs text-gray-400">Fixed & Verified</span>
+    </div>
+  </div>
 
   <!-- Charts Container -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl">
     <!-- Pending Chart -->
-    <div class="bg-white shadow-lg rounded-2xl p-6">
-      <h2 class="text-xl font-semibold text-gray-700 mb-4">Active Issues (Pending + In Progress)</h2>
+    <div class="bg-white shadow-lg rounded-2xl p-6 border border-gray-100">
+      <h2 class="text-lg font-bold text-gray-700 mb-3">Active Issues by Category</h2>
+      <p class="text-xs text-gray-500 mb-4">Consolidated geographical problem spots currently awaiting or under action.</p>
       <canvas id="pendingChart" height="200"></canvas>
     </div>
 
     <!-- Resolved Chart -->
-    <div class="bg-white shadow-lg rounded-2xl p-6">
-      <h2 class="text-xl font-semibold text-gray-700 mb-4">Resolved Issues</h2>
+    <div class="bg-white shadow-lg rounded-2xl p-6 border border-gray-100">
+      <h2 class="text-lg font-bold text-gray-700 mb-3">Resolved Issues by Category</h2>
+      <p class="text-xs text-gray-500 mb-4">Successfully resolved municipal issues with verified completion.</p>
       <canvas id="resolvedChart" height="200"></canvas>
     </div>
   </div>
 
-  <!-- Back to Home -->
-  <a href="index.html" class="mt-6 text-blue-700 underline">⬅ Back to Home</a>
+  <!-- Navigation Links -->
+  <div class="mt-8 flex gap-6 text-sm">
+    <a href="admin-dashboard.html" class="text-blue-600 font-semibold hover:underline">🛠 Admin Dashboard</a>
+    <span class="text-gray-300">|</span>
+    <a href="citizen-report.html" class="text-blue-600 font-semibold hover:underline">📌 Report New Issue</a>
+    <span class="text-gray-300">|</span>
+    <a href="track-issue.html" class="text-blue-600 font-semibold hover:underline">🔍 Track Issue</a>
+  </div>
 
   <script>
     function loadAnalytics() {
-      // Separate counts for pending/in-progress and resolved
-      let pendingCounts = { garbage: 0, drainage: 0, streetlight: 0, road: 0, other: 0 };
+      const allReports = getAllIssues();
+      const clusters = clusterAllIssues();
+
+      let totalReports = allReports.length;
+      let totalActiveClusters = 0;
+      let totalResolvedClusters = 0;
+
+      let activeCounts = { garbage: 0, drainage: 0, streetlight: 0, road: 0, other: 0 };
       let resolvedCounts = { garbage: 0, drainage: 0, streetlight: 0, road: 0, other: 0 };
 
-      // Go through localStorage and categorize
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key.startsWith("REP")) {
-          const issue = JSON.parse(localStorage.getItem(key));
+      clusters.forEach(cluster => {
+        const cat = (cluster.category || "other").toLowerCase();
+        const bucket = activeCounts[cat] !== undefined ? cat : "other";
 
-          const category = issue.category || "other";
-          const status = issue.status || "Pending";
-
-          if (status === "Resolved") {
-            // Count in resolved chart
-            if (resolvedCounts[category] !== undefined) {
-              resolvedCounts[category]++;
-            } else {
-              resolvedCounts.other++;
-            }
-          } else {
-            // Count in pending chart (Pending + In Progress)
-            if (pendingCounts[category] !== undefined) {
-              pendingCounts[category]++;
-            } else {
-              pendingCounts.other++;
-            }
-          }
+        if (cluster.status === "Resolved") {
+          totalResolvedClusters++;
+          resolvedCounts[bucket]++;
+        } else {
+          totalActiveClusters++;
+          activeCounts[bucket]++;
         }
-      }
+      });
 
-      // Common labels and colors
+      // Update Summary Cards
+      document.getElementById("statTotalReports").innerText = totalReports;
+      document.getElementById("statClusters").innerText = clusters.length;
+      document.getElementById("statActive").innerText = totalActiveClusters;
+      document.getElementById("statResolved").innerText = totalResolvedClusters;
+
       const labels = ["Garbage", "Drainage", "Street Light", "Road", "Other"];
-      const colors = ["#e74c3c", "#3498db", "#f1c40f", "#2ecc71", "#9b59b6"];
+      const colors = ["#ef4444", "#3b82f6", "#f59e0b", "#10b981", "#8b5cf6"];
 
-      // Create Pending Pie Chart
+      // Active Pie Chart
       const pendingCtx = document.getElementById("pendingChart").getContext("2d");
       new Chart(pendingCtx, {
-        type: "pie",
+        type: "doughnut",
         data: {
           labels: labels,
           datasets: [{
-            label: "Pending/In Progress",
             data: [
-              pendingCounts.garbage,
-              pendingCounts.drainage,
-              pendingCounts.streetlight,
-              pendingCounts.road,
-              pendingCounts.other
+              activeCounts.garbage,
+              activeCounts.drainage,
+              activeCounts.streetlight,
+              activeCounts.road,
+              activeCounts.other
             ],
             backgroundColor: colors
           }]
         },
         options: {
+          responsive: true,
           plugins: {
-            legend: { position: "bottom" },
-            title: { display: true, text: "Active Issues Distribution" }
+            legend: { position: "bottom" }
           }
         }
       });
 
-      // Create Resolved Pie Chart
+      // Resolved Pie Chart
       const resolvedCtx = document.getElementById("resolvedChart").getContext("2d");
       new Chart(resolvedCtx, {
-        type: "pie",
+        type: "doughnut",
         data: {
           labels: labels,
           datasets: [{
-            label: "Resolved",
             data: [
               resolvedCounts.garbage,
               resolvedCounts.drainage,
@@ -111,16 +141,15 @@
           }]
         },
         options: {
+          responsive: true,
           plugins: {
-            legend: { position: "bottom" },
-            title: { display: true, text: "Resolved Issues Distribution" }
+            legend: { position: "bottom" }
           }
         }
       });
     }
 
-    // Run analytics on load
-    loadAnalytics();
+    window.onload = loadAnalytics;
   </script>
 </body>
 </html>

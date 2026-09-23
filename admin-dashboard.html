@@ -2,218 +2,442 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Smart Civic Governance</title>
+  <script src="geo-utils.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; background:#f4f6f9; margin:0; padding:0; }
-    header { background:#2c3e50; color:white; padding:15px 20px; text-align:center; }
-    h1 { margin:0; font-size:24px; }
-    main { padding:30px; max-width:1200px; margin:auto; }
-    h2 { margin-top:40px; margin-bottom:15px; color:#2c3e50; border-bottom:2px solid #2c3e50; display:inline-block; padding-bottom:5px; }
-    table { width:100%; border-collapse:collapse; background:#fff; margin-bottom:30px; box-shadow:0px 4px 8px rgba(0,0,0,0.1); }
-    th, td { border:1px solid #ddd; padding:12px; text-align:center; }
-    th { background:#2c3e50; color:white; }
-    tr:nth-child(even) { background:#f9f9f9; }
-    .status-pending { color:#e67e22; font-weight:bold; }
-    .status-progress { color:#2980b9; font-weight:bold; }
-    .status-resolved { color:#27ae60; font-weight:bold; }
-    .action-btn { padding:6px 12px; margin:3px 0; border:none; border-radius:5px; cursor:pointer; font-size:14px; display:block; width:100%; }
-    .btn-progress { background:#2980b9; color:white; }
-    .btn-resolved { background:#27ae60; color:white; }
-    .btn-photo { background:#8e44ad; color:white; }
-    .btn-update { background:#f39c12; color:white; }
-    .back-link { display:block; text-align:center; margin-top:25px; text-decoration:none; color:#2c3e50; font-weight:bold; }
-    footer { text-align:center; background:#2c3e50; color:white; padding:10px; margin-top:40px; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background:#f4f6f9; margin:0; padding:0; color:#333; }
+    header { background:#1e293b; color:white; padding:18px 30px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 10px rgba(0,0,0,0.15); }
+    header h1 { margin:0; font-size:22px; display:flex; align-items:center; gap:10px; }
+    header a { color:#93c5fd; text-decoration:none; font-size:14px; font-weight:600; }
+    header a:hover { text-decoration:underline; }
+
+    main { padding:25px; max-width:1300px; margin:auto; }
+
+    /* Summary Stats Bar */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    .stat-card {
+      background: white;
+      padding: 18px 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border-left: 4px solid #3b82f6;
+    }
+    .stat-card.green { border-left-color: #10b981; }
+    .stat-card.amber { border-left-color: #f59e0b; }
+    .stat-card.red { border-left-color: #ef4444; }
+    .stat-card.purple { border-left-color: #8b5cf6; }
+    .stat-card h4 { margin: 0 0 6px 0; font-size: 13px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-card p { margin: 0; font-size: 26px; font-weight: bold; color: #1e293b; }
+    .stat-card small { font-size: 12px; color: #64748b; }
+
+    /* Clustering Banner */
+    .info-banner {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+      padding: 12px 18px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 35px;
+      margin-bottom: 12px;
+      border-bottom: 2px solid #cbd5e1;
+      padding-bottom: 8px;
+    }
+    h2 { margin:0; color:#1e293b; font-size: 20px; display:flex; align-items:center; gap:8px; }
+
+    .table-container {
+      background:#fff;
+      border-radius:10px;
+      overflow-x:auto;
+      margin-bottom:30px;
+      box-shadow:0px 3px 10px rgba(0,0,0,0.06);
+      border: 1px solid #e2e8f0;
+    }
+    table { width:100%; border-collapse:collapse; text-align:left; font-size: 13px; }
+    th, td { padding:12px 14px; border-bottom:1px solid #f1f5f9; vertical-align: top; }
+    th { background:#f8fafc; color:#475569; font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:0.5px; }
+    tr:hover { background:#f8fafc; }
+
+    /* Badges */
+    .badge { display:inline-block; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:bold; }
+    .badge-critical { background:#fee2e2; color:#b91c1c; border: 1px solid #f87171; }
+    .badge-high { background:#fef3c7; color:#b45309; border: 1px solid #fbbf24; }
+    .badge-normal { background:#f1f5f9; color:#475569; }
+
+    .status-pending { color:#d97706; font-weight:bold; background:#fffbeb; padding:4px 8px; border-radius:6px; display:inline-block; font-size:12px; }
+    .status-progress { color:#2563eb; font-weight:bold; background:#eff6ff; padding:4px 8px; border-radius:6px; display:inline-block; font-size:12px; }
+    .status-resolved { color:#059669; font-weight:bold; background:#ecfdf5; padding:4px 8px; border-radius:6px; display:inline-block; font-size:12px; }
+
+    .ids-list { font-family: monospace; font-size: 11px; color:#1e40af; }
+    .coords-tag { font-family: monospace; font-size: 11px; color:#64748b; display:block; margin-top:3px; }
+
+    .action-btn {
+      padding:6px 10px;
+      margin:2px 0;
+      border:none;
+      border-radius:5px;
+      cursor:pointer;
+      font-size:12px;
+      font-weight:600;
+      display:block;
+      width:100%;
+      text-align:center;
+      transition:background 0.2s;
+    }
+    .btn-progress { background:#3b82f6; color:white; }
+    .btn-progress:hover { background:#2563eb; }
+    .btn-resolved { background:#10b981; color:white; }
+    .btn-resolved:hover { background:#059669; }
+    .btn-photo { background:#8b5cf6; color:white; }
+    .btn-photo:hover { background:#7c3aed; }
+    .btn-update { background:#f59e0b; color:white; }
+    .btn-update:hover { background:#d97706; }
+
+    .empty-state { text-align:center; color:#94a3b8; padding:20px; font-style:italic; }
+
+    footer { text-align:center; background:#1e293b; color:#94a3b8; padding:15px; margin-top:40px; font-size:13px; }
   </style>
 </head>
 <body>
   <header>
-    <h1>🛠 Admin Dashboard</h1>
+    <h1>🛠 Tamil Nadu Civic Portal - Government Administration</h1>
+    <div>
+      <a href="analytics.html" style="margin-right:15px;">📊 Analytics</a>
+      <a href="index.html">⬅ Back to Portal</a>
+    </div>
   </header>
 
   <main>
-    <h2>🚧 Road Issues</h2>
-    <table id="roadTable">
-      <tr>
-        <th>ID(s)</th><th>Description</th><th>Address</th><th>Locations</th>
-        <th>Last Reported</th><th>Reports</th><th>Status</th><th>Action</th><th>Photos</th>
-      </tr>
-    </table>
+    <!-- Live Clustering Information Banner -->
+    <div class="info-banner">
+      <span style="font-size:20px;">🌐</span>
+      <div>
+        <strong>Automatic Proximity Clustering Active:</strong> Complaints within <strong>100 meters</strong> of the same location and category are automatically consolidated into single unified master issues. Status changes and resolution photos automatically apply across all citizen reports.
+      </div>
+    </div>
 
-    <h2>💧 Drainage Issues</h2>
-    <table id="drainageTable">
-      <tr>
-        <th>ID(s)</th><th>Description</th><th>Address</th><th>Locations</th>
-        <th>Last Reported</th><th>Reports</th><th>Status</th><th>Action</th><th>Photos</th>
-      </tr>
-    </table>
+    <!-- Summary Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat-card purple">
+        <h4>Total Citizen Reports</h4>
+        <p id="totalReportsCount">0</p>
+        <small>Individual filings received</small>
+      </div>
+      <div class="stat-card">
+        <h4>Consolidated Issues</h4>
+        <p id="totalClustersCount">0</p>
+        <small>Unique geographical spots</small>
+      </div>
+      <div class="stat-card amber">
+        <h4>Pending Action</h4>
+        <p id="pendingCount">0</p>
+        <small>Awaiting municipal review</small>
+      </div>
+      <div class="stat-card">
+        <h4>In Progress</h4>
+        <p id="progressCount">0</p>
+        <small>Field teams deployed</small>
+      </div>
+      <div class="stat-card green">
+        <h4>Resolved</h4>
+        <p id="resolvedCount">0</p>
+        <small>Work verified & completed</small>
+      </div>
+    </div>
 
-    <h2>🗑 Garbage Issues</h2>
-    <table id="garbageTable">
-      <tr>
-        <th>ID(s)</th><th>Description</th><th>Address</th><th>Locations</th>
-        <th>Last Reported</th><th>Reports</th><th>Status</th><th>Action</th><th>Photos</th>
-      </tr>
-    </table>
+    <!-- Road Issues -->
+    <div class="section-header">
+      <h2>🚧 Road & Pothole Damage</h2>
+      <span id="roadBadge" class="badge badge-normal">0 issues</span>
+    </div>
+    <div class="table-container">
+      <table id="roadTable">
+        <thead>
+          <tr>
+            <th style="width:130px;">Master & Citizen IDs</th>
+            <th style="width:90px;">Urgency</th>
+            <th>Citizen Descriptions</th>
+            <th>Location & Coordinates</th>
+            <th style="width:105px;">Last Activity</th>
+            <th style="width:90px;">Status</th>
+            <th style="width:100px;">Update Status</th>
+            <th style="width:110px;">Verification</th>
+          </tr>
+        </thead>
+        <tbody id="roadTableBody"></tbody>
+      </table>
+    </div>
 
-    <h2>💡 Street Light Issues</h2>
-    <table id="streetlightTable">
-      <tr>
-        <th>ID(s)</th><th>Description</th><th>Address</th><th>Locations</th>
-        <th>Last Reported</th><th>Reports</th><th>Status</th><th>Action</th><th>Photos</th>
-      </tr>
-    </table>
+    <!-- Drainage Issues -->
+    <div class="section-header">
+      <h2>💧 Drainage & Sewage Overflow</h2>
+      <span id="drainageBadge" class="badge badge-normal">0 issues</span>
+    </div>
+    <div class="table-container">
+      <table id="drainageTable">
+        <thead>
+          <tr>
+            <th style="width:130px;">Master & Citizen IDs</th>
+            <th style="width:90px;">Urgency</th>
+            <th>Citizen Descriptions</th>
+            <th>Location & Coordinates</th>
+            <th style="width:105px;">Last Activity</th>
+            <th style="width:90px;">Status</th>
+            <th style="width:100px;">Update Status</th>
+            <th style="width:110px;">Verification</th>
+          </tr>
+        </thead>
+        <tbody id="drainageTableBody"></tbody>
+      </table>
+    </div>
 
-    <a href="index.html" class="back-link">⬅ Back to Home</a>
+    <!-- Garbage Issues -->
+    <div class="section-header">
+      <h2>🗑 Garbage & Waste Disposal</h2>
+      <span id="garbageBadge" class="badge badge-normal">0 issues</span>
+    </div>
+    <div class="table-container">
+      <table id="garbageTable">
+        <thead>
+          <tr>
+            <th style="width:130px;">Master & Citizen IDs</th>
+            <th style="width:90px;">Urgency</th>
+            <th>Citizen Descriptions</th>
+            <th>Location & Coordinates</th>
+            <th style="width:105px;">Last Activity</th>
+            <th style="width:90px;">Status</th>
+            <th style="width:100px;">Update Status</th>
+            <th style="width:110px;">Verification</th>
+          </tr>
+        </thead>
+        <tbody id="garbageTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Streetlight Issues -->
+    <div class="section-header">
+      <h2>💡 Street Light Failures</h2>
+      <span id="streetlightBadge" class="badge badge-normal">0 issues</span>
+    </div>
+    <div class="table-container">
+      <table id="streetlightTable">
+        <thead>
+          <tr>
+            <th style="width:130px;">Master & Citizen IDs</th>
+            <th style="width:90px;">Urgency</th>
+            <th>Citizen Descriptions</th>
+            <th>Location & Coordinates</th>
+            <th style="width:105px;">Last Activity</th>
+            <th style="width:90px;">Status</th>
+            <th style="width:100px;">Update Status</th>
+            <th style="width:110px;">Verification</th>
+          </tr>
+        </thead>
+        <tbody id="streetlightTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Other Civic Issues -->
+    <div class="section-header">
+      <h2>📌 Other Civic Reports</h2>
+      <span id="otherBadge" class="badge badge-normal">0 issues</span>
+    </div>
+    <div class="table-container">
+      <table id="otherTable">
+        <thead>
+          <tr>
+            <th style="width:130px;">Master & Citizen IDs</th>
+            <th style="width:90px;">Urgency</th>
+            <th>Citizen Descriptions</th>
+            <th>Location & Coordinates</th>
+            <th style="width:105px;">Last Activity</th>
+            <th style="width:90px;">Status</th>
+            <th style="width:100px;">Update Status</th>
+            <th style="width:110px;">Verification</th>
+          </tr>
+        </thead>
+        <tbody id="otherTableBody"></tbody>
+      </table>
+    </div>
   </main>
 
   <footer>
-    <p>&copy; 2025 Civic Engagement Portal | Admin</p>
+    <p>&copy; 2025 Government of Tamil Nadu | Civic Engagement Portal - Municipal Administration</p>
   </footer>
 
-<script>
-  const mergedIssues = {};
+  <script>
+    let clusters = [];
 
-  // Normalize location to 4 decimal points
-  function normalizeLocation(loc){
-    if(!loc) return "Unknown";
-    const parts = loc.split(",");
-    if(parts.length !== 2) return loc;
+    // Load and render issues using Haversine geo-clustering
+    function loadAndRender() {
+      clusters = clusterAllIssues();
 
-    const lat = parseFloat(parts[0]).toFixed(4);
-    const lon = parseFloat(parts[1]).toFixed(4);
-    return `${lat},${lon}`;
-  }
-
-  // Load issues from localStorage
-  function loadIssues(){
-    for(let i = 0; i < localStorage.length; i++){
-      const key = localStorage.key(i);
-      if(key.startsWith("REP")){
-        const issue = JSON.parse(localStorage.getItem(key));
-        issue.location = normalizeLocation(issue.location);
-        mergeIssue(issue);
-      }
-    }
-
-    Object.values(mergedIssues).forEach(issue => addIssueRow(issue));
-  }
-
-  // Merge complaints by category + address
-  function mergeIssue(issue){
-    const uniqueKey = issue.category + "_" + (issue.address || "Unknown");
-
-    if(mergedIssues[uniqueKey]){
-      mergedIssues[uniqueKey].reports += 1;
-      mergedIssues[uniqueKey].ids.push(issue.id);
-
-      if(!mergedIssues[uniqueKey].locations.includes(issue.location)){
-        mergedIssues[uniqueKey].locations.push(issue.location);
-      }
-
-      mergedIssues[uniqueKey].date = issue.date; // update last reported
-    } else {
-      issue.reports = 1;
-      issue.ids = [issue.id];
-      issue.locations = [issue.location];
-      mergedIssues[uniqueKey] = issue;
-    }
-  }
-
-  // Add row to respective table
-  function addIssueRow(issue){
-    let tableId = "";
-    switch(issue.category){
-      case "road": tableId = "roadTable"; break;
-      case "drainage": tableId = "drainageTable"; break;
-      case "garbage": tableId = "garbageTable"; break;
-      case "streetlight": tableId = "streetlightTable"; break;
-      default: return;
-    }
-
-    let statusClass = "status-pending";
-    if(issue.status === "In Progress") statusClass = "status-progress";
-    if(issue.status === "Resolved") statusClass = "status-resolved";
-
-    const table = document.getElementById(tableId);
-    const row = table.insertRow();
-    row.innerHTML = `
-      <td>${issue.ids.join(", ")}</td>
-      <td>${issue.description}</td>
-      <td>${issue.address || "N/A"}</td>
-      <td>${issue.locations.join(" | ")}</td>
-      <td>${issue.date || "N/A"}</td>
-      <td>${issue.reports}</td>
-      <td class="${statusClass}">${issue.status || "Pending"}</td>
-      <td>
-        <button class="action-btn btn-progress" onclick="updateStatus('${issue.ids[0]}','In Progress',this)">In Progress</button>
-        <button class="action-btn btn-resolved" onclick="updateStatus('${issue.ids[0]}','Resolved',this)">Resolved</button>
-      </td>
-      <td>
-        <button class="action-btn btn-photo" onclick="viewPhotos('${issue.ids[0]}')">View</button>
-        <button class="action-btn btn-update" onclick="uploadAfterPhoto('${issue.ids[0]}')">Upload</button>
-      </td>
-    `;
-  }
-
-  // Update status in localStorage and table
-  function updateStatus(id, newStatus, btn){
-    for(const issue of Object.values(mergedIssues)){
-      if(issue.ids.includes(id)){
-        issue.ids.forEach(storedId => {
-          const storedIssue = JSON.parse(localStorage.getItem(storedId));
-          if(storedIssue){
-            storedIssue.status = newStatus;
-            localStorage.setItem(storedId, JSON.stringify(storedIssue));
-          }
-        });
-
-        const statusCell = btn.closest("tr").children[6];
-        statusCell.textContent = newStatus;
-        statusCell.className = newStatus === "Resolved" 
-          ? "status-resolved" 
-          : (newStatus === "In Progress" ? "status-progress" : "status-pending");
-        break;
-      }
-    }
-  }
-
-  // Open file picker for afterPhoto upload
-  function uploadAfterPhoto(issueId) {
-    const fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.accept = "image/*";
-
-    fileInput.onchange = function(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const base64AfterPhoto = e.target.result;
-
-        // Update the specific complaint
-        const storedIssue = JSON.parse(localStorage.getItem(issueId));
-        if (storedIssue) {
-          storedIssue.afterPhoto = base64AfterPhoto;
-          storedIssue.status = "Resolved"; // auto mark resolved
-          localStorage.setItem(issueId, JSON.stringify(storedIssue));
-          alert("After photo uploaded successfully!");
-        }
+      // Reset table bodies
+      const bodies = {
+        road: document.getElementById("roadTableBody"),
+        drainage: document.getElementById("drainageTableBody"),
+        garbage: document.getElementById("garbageTableBody"),
+        streetlight: document.getElementById("streetlightTableBody"),
+        other: document.getElementById("otherTableBody")
       };
-      reader.readAsDataURL(file);
-    };
 
-    fileInput.click(); // Open file picker
-  }
+      const counts = { road: 0, drainage: 0, garbage: 0, streetlight: 0, other: 0 };
+      let totalReports = 0;
+      let totalPending = 0;
+      let totalProgress = 0;
+      let totalResolved = 0;
 
-  // Redirect to photo-view page
-  function viewPhotos(issueId){
-    window.location.href = `photo-view.html?id=${issueId}`;
-  }
+      for (const key in bodies) {
+        bodies[key].innerHTML = "";
+      }
 
-  // Initialize
-  loadIssues();
-</script>
+      clusters.forEach(cluster => {
+        totalReports += cluster.reportsCount;
+        if (cluster.status === "Resolved") totalResolved++;
+        else if (cluster.status === "In Progress") totalProgress++;
+        else totalPending++;
 
+        const cat = (cluster.category || "other").toLowerCase();
+        const targetBody = bodies[cat] || bodies.other;
+        if (counts[cat] !== undefined) counts[cat]++;
+        else counts.other++;
+
+        const row = document.createElement("tr");
+
+        let statusClass = "status-pending";
+        if (cluster.status === "In Progress") statusClass = "status-progress";
+        if (cluster.status === "Resolved") statusClass = "status-resolved";
+
+        // IDs formatting
+        const idsHtml = `
+          <div>
+            <strong style="color:#0f172a;">${cluster.clusterId}</strong>
+            <div class="ids-list" title="Citizen Tracking IDs">
+              ${cluster.ids.map(id => `<span>• ${id}</span>`).join("<br>")}
+            </div>
+          </div>
+        `;
+
+        // Descriptions list
+        const descHtml = cluster.descriptions.map((d, idx) => {
+          return `<div style="margin-bottom:4px; font-size:12px;"><strong>#${idx+1}:</strong> ${escapeHtml(d)}</div>`;
+        }).join("");
+
+        // Coordinates & Address
+        const coordsStr = cluster.centroid ? `${cluster.centroid.lat.toFixed(5)}, ${cluster.centroid.lon.toFixed(5)}` : "No GPS";
+        const locHtml = `
+          <div>
+            <div style="font-weight:500; font-size:12px; color:#1e293b;">${escapeHtml(cluster.address || "N/A")}</div>
+            <span class="coords-tag">📍 ${coordsStr}</span>
+            ${cluster.locations.length > 1 ? `<small style="color:#64748b;">(${cluster.locations.length} coordinates recorded within 100m)</small>` : ''}
+          </div>
+        `;
+
+        row.innerHTML = `
+          <td>${idsHtml}</td>
+          <td>
+            <span class="badge ${cluster.priorityBadgeClass}">
+              ${cluster.reportsCount} Report${cluster.reportsCount > 1 ? 's' : ''}
+            </span>
+          </td>
+          <td>${descHtml}</td>
+          <td>${locHtml}</td>
+          <td><small style="color:#475569;">${cluster.lastReportedDate || 'N/A'}</small></td>
+          <td><span class="${statusClass}">${cluster.status}</span></td>
+          <td>
+            <button class="action-btn btn-progress" onclick="changeStatus('${cluster.clusterId}', 'In Progress')">In Progress</button>
+            <button class="action-btn btn-resolved" onclick="changeStatus('${cluster.clusterId}', 'Resolved')">Resolved</button>
+          </td>
+          <td>
+            <button class="action-btn btn-photo" onclick="viewClusterPhotos('${cluster.primaryId}')">View Photos (${cluster.photos.length})</button>
+            <button class="action-btn btn-update" onclick="uploadClusterAfterPhoto('${cluster.clusterId}')">Upload After</button>
+          </td>
+        `;
+
+        targetBody.appendChild(row);
+      });
+
+      // Update empty state if any table is blank
+      for (const key in bodies) {
+        if (bodies[key].children.length === 0) {
+          bodies[key].innerHTML = `<tr><td colspan="8" class="empty-state">No issues reported in this category yet.</td></tr>`;
+        }
+      }
+
+      // Update section badges
+      document.getElementById("roadBadge").innerText = counts.road + " consolidated";
+      document.getElementById("drainageBadge").innerText = counts.drainage + " consolidated";
+      document.getElementById("garbageBadge").innerText = counts.garbage + " consolidated";
+      document.getElementById("streetlightBadge").innerText = counts.streetlight + " consolidated";
+      document.getElementById("otherBadge").innerText = counts.other + " consolidated";
+
+      // Update top stats
+      document.getElementById("totalReportsCount").innerText = totalReports;
+      document.getElementById("totalClustersCount").innerText = clusters.length;
+      document.getElementById("pendingCount").innerText = totalPending;
+      document.getElementById("progressCount").innerText = totalProgress;
+      document.getElementById("resolvedCount").innerText = totalResolved;
+    }
+
+    // Synchronize status update across all linked reports in cluster
+    function changeStatus(clusterId, newStatus) {
+      updateClusterStatus(clusterId, newStatus);
+      loadAndRender();
+    }
+
+    // Open file picker to upload resolution afterPhoto and sync to all linked reports
+    function uploadClusterAfterPhoto(clusterId) {
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.accept = "image/*";
+
+      fileInput.onchange = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const base64Photo = e.target.result;
+          updateClusterAfterPhoto(clusterId, base64Photo);
+          alert("Resolution photo uploaded successfully! All linked reports for this location marked as Resolved.");
+          loadAndRender();
+        };
+        reader.readAsDataURL(file);
+      };
+
+      fileInput.click();
+    }
+
+    // View photos for cluster (with admin privileges)
+    function viewClusterPhotos(primaryId) {
+      sessionStorage.setItem("adminAuth", "true");
+      window.location.href = `photo-view.html?id=${primaryId}&admin=true`;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    // Initialize on page load
+    window.onload = loadAndRender;
+  </script>
 </body>
 </html>

@@ -543,6 +543,7 @@
       const links = document.getElementById('adminLinks');
 
       if (enteredPassword === ADMIN_PASSWORD) {
+        sessionStorage.setItem("adminAuth", "true");
         links.style.display = 'block';
       } else {
         alert("Incorrect password! Please try again.");
